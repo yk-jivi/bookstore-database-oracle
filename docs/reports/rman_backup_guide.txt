@@ -1,0 +1,76 @@
+Для начала необходимо перевести базу данных в режим ArchiveLog
+
+--Включение архивации
+
+В sqlplus:
+
+ALTER SESSION SET CONTAINER = CDB$ROOT;
+
+SHUTDOWN IMMEDIATE;
+
+--Выход из sqlplus
+--Сброс переменных окружения
+export ORACLE_SID=FREE
+unset TWO_TASK
+sqlplus / as sysdba
+
+STARTUP MOUNT;
+
+ALTER DATABASE ARCHIVELOG;
+
+ALTER DATABASE OPEN;
+
+ALTER PLUGGABLE DATABASE ALL OPEN;
+
+exit
+
+-- Запуск утилиты RMAN
+
+rman target /
+
+Далее базовые настройки:
+
+-- 1. Хранить бэкапы столько времени, чтобы можно было восстановиться на 7 дней назад
+CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;
+
+-- 2. Включаем АВТОМАТИЧЕСКИЙ бэкап контрольного файла (это спасет базу, если всё упадет)
+CONFIGURE CONTROLFILE AUTOBACKUP ON;
+
+-- 3. Настраиваем сжатие, чтобы бэкапы не занимали терабайты
+CONFIGURE DEVICE TYPE DISK BACKUP TYPE TO COMPRESSED BACKUPSET;
+
+-- 4. Оптимизация: не делать бэкап файла, если он не менялся и уже есть в копии
+CONFIGURE BACKUP OPTIMIZATION ON;
+
+
+-- Теперь необходимо создать папку для бэкапов.
+-- На сервере
+mkdir -p /home/oracle/rman_backups
+
+В sqlplus
+ALTER SESSION SET CONTAINER = CDB$ROOT;
+
+-- 1. Устанавливаем лимит дискового пространства (например, 10 Гб)
+ALTER SYSTEM SET db_recovery_file_dest_size = 10G SCOPE=BOTH;
+
+-- 2. Указываем путь к папке
+ALTER SYSTEM SET db_recovery_file_dest = '/home/oracle/rman_backups' SCOPE=BOTH;
+
+-- Проверка (value = наш путь)
+show parameter db_recovery_file_dest;
+
+
+-- Далее внутри RMAN
+-- Бэкап всей БД + всех архивных логов + удаление старых логов с диска (освобождаем место)
+BACKUP DATABASE PLUS ARCHIVELOG DELETE INPUT;
+
+
+
+-- ДОПОЛНИТЬ ФАЙЛ
+
+
+chmod +x backup_shop.sh
+
+nano ./backup_shop.sh
+nano ./backup_shop.sh
+

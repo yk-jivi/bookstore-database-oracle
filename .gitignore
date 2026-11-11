@@ -1,0 +1,26 @@
+# Operating System Files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+.DS_Store
+
+# Office temporary lock files
+~$*.docx
+~$*.doc
+~$*.xlsx
+~$*.pptx
+
+# IDE & Editors
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Database & SQL Tool dumps / logs
+*.log
+*.dmp
+*.tmp
+*.bak
